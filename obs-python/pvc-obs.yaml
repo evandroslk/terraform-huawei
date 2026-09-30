@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-veritas-files
+  namespace: obs-demo
+  annotations:
+    csi.storage.k8s.io/fstype: s3fs
+    everest.io/obs-volume-type: STANDARD
+    everest.io/csi.authentication-source: pod
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: csi-obs
+  volumeName: pv-obs-example

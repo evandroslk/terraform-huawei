@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-obs-example
+  annotations:
+    pv.kubernetes.io/provisioned-by: everest-csi-provisioner
+    everest.io/obs-volume-type: STANDARD
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 1Gi
+  csi:
+    driver: obs.csi.everest.io
+    fsType: s3fs
+    volumeAttributes:
+      everest.io/obs-volume-type: STANDARD
+      everest.io/region: sa-brazil-1
+      storage.kubernetes.io/csiProvisionerIdentity: everest-csi-provisioner
+      everest.io/csi.authentication-source: pod
+    volumeHandle: veritas-files
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: csi-obs

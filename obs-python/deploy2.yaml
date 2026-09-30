@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obs-demo
+  namespace: obs-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obs-demo
+  template:
+    metadata:
+      labels:
+        app: obs-demo
+        pod-identity.cce.io/injection: "on"
+    spec:
+      serviceAccountName: obs-reader
+      initContainers:
+      - name: download-license
+        image: python:3.12-slim
+        env: 
+          - name: OBS_ENDPOINT
+            value: "https://obs.sa-brazil-1.myhuaweicloud.com"
+          - name: OBS_BUCKET
+            value: "veritas-files"
+          - name: OBS_OBJECT
+            value: "license.json"
+          - name: OUTPUT
+            value: "/shared/license.json"
+        command:
+          - sh
+          - -c
+          - |
+            pip install --no-cache-dir esdk-obs-python huaweicloudsdkcore &&
+            python /scripts/download-obs-object.py
+        volumeMounts:
+          - name: script
+            mountPath: /scripts
+            readOnly: true
+          - name: shared
+            mountPath: /shared
+      containers:
+        - name: app
+          image: nginx:alpine
+          volumeMounts:
+            - name: shared
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: download-obs-object-script
+        - name: shared
+          emptyDir: {}
+       

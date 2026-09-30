@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: download-obs-object-script
+  namespace: obs-demo
+data:
+  download-obs-object.py: |
+    import os
+
+    from huaweicloudsdkcore.auth.provider import PodIdentityCredentialProvider
+    from obs import ObsClient
+
+    OBS_ENDPOINT = os.environ["OBS_ENDPOINT"]
+    OBS_BUCKET = os.environ["OBS_BUCKET"]
+    OBS_OBJECT = os.environ["OBS_OBJECT"]
+    OUTPUT = os.environ["OUTPUT"]
+
+    provider = PodIdentityCredentialProvider.get_basic()
+    credentials = provider.get_credentials()
+
+    client = ObsClient(
+        access_key_id=credentials.ak,
+        secret_access_key=credentials.sk,
+        security_token=credentials.security_token,
+        server=OBS_ENDPOINT,
+    )
+
+    try:
+        response = client.getObject(
+            OBS_BUCKET,
+            OBS_OBJECT,
+            downloadPath=OUTPUT
+        )
+
+        if response.status != 200:
+            raise RuntimeError(
+                f"OBS HTTP {response.status}"
+            )
+
+        print(f"Downloaded {OBS_OBJECT} -> {OUTPUT}")
+
+    finally:
+        client.close()

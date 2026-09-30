@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obs-demo
+  namespace: obs-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obs-demo
+  template:
+    metadata:
+      labels:
+        app: obs-demo
+    spec:
+      serviceAccountName: obs-reader
+      containers:
+        - name: app
+          image: nginx:alpine
+          volumeMounts:
+            - name: obs-files
+              mountPath: /app/config
+      volumes:
+        - name: obs-files
+          persistentVolumeClaim:
+            claimName: pvc-veritas-files
